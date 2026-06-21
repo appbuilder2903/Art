@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Jamini Roy — Painter of the People</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Da+2:wght@500;600;700;800&family=Karla:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root{
+    --maroon:#6B2430;
+    --maroon-deep:#4E1B24;
+    --ink:#211510;
+    --bone:#F2E6D3;
+    --bone-soft:#E8D9BD;
+    --mustard:#D89B3C;
+    --mustard-deep:#B9802A;
+    --teal:#2E6E62;
+    --indigo:#233E6B;
+    --indigo-deep:#192c4d;
+    --cream:#F7EFE2;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Karla',sans-serif;
+    background:var(--bone);
+    color:var(--ink);
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  .display{font-family:'Baloo Da 2',sans-serif;}
+  .mono{font-family:'IBM Plex Mono',monospace; letter-spacing:.06em;}
+  img{max-width:100%;display:block;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;}
+  a{color:inherit;text-decoration:none;}
+
+  /* ---------- progress bar ---------- */
+  .progress-bar{
+    position:fixed; top:0; left:0; height:4px; width:0%;
+    background:var(--mustard); z-index:999; transition:width .1s linear;
+  }
+
+  /* ---------- shared rosette ---------- */
+  .rosette circle{ fill:currentColor; opacity:0; transform-origin:60px 60px;
+    animation:dotIn .4s ease-out forwards; }
+  @keyframes dotIn{ from{opacity:0; transform:scale(.2);} to{opacity:1; transform:scale(1);} }
+  @media (prefers-reduced-motion:reduce){
+    .rosette circle{ animation:none; opacity:1; }
+    html{scroll-behavior:auto;}
+  }
+
+  /* ---------- layout helpers ---------- */
+  section, header.hero, footer.footer{
+    padding:72px 24px;
+    position:relative;
+  }
+  .eyebrow{ font-size:.72rem; font-weight:500; color:var(--maroon); margin-bottom:14px; }
+  .eyebrow.light{ color:var(--mustard); }
+  .section-title{ font-size:1.6rem; font-weight:700; line-height:1.25; margin-bottom:40px; max-width:18ch; }
+
+  /* ================= HERO ================= */
+  .hero{
+    background:var(--maroon);
+    color:var(--cream);
+    min-height:92vh;
+    display:flex;
+    align-items:center;
+  }
+  .hero-inner{ display:flex; flex-direction:column-reverse; gap:36px; width:100%; }
+  .hero-text .eyebrow{ color:var(--mustard); }
+  .hero-title{
+    font-size:clamp(2.6rem,11vw,3.4rem);
+    font-weight:800;
+    line-height:.95;
+    letter-spacing:.01em;
+  }
+  .bengali-name{
+    display:inline-block; margin-top:6px;
+    font-size:1.5rem; color:var(--bone-soft); font-weight:600;
+    border-bottom:2px dotted var(--mustard);
+    padding-bottom:2px;
+  }
+  .tooltip{
+    display:block; max-width:280px; font-size:.85rem; margin-top:8px;
+    color:var(--mustard); height:0; overflow:hidden; opacity:0;
+    transition:opacity .25s ease;
+  }
+  .tooltip.shown{ height:auto; opacity:1; }
+  .hero-tagline{
+    margin-top:22px; font-size:1.05rem; line-height:1.6; max-width:34ch; color:var(--bone-soft);
+  }
+  .scroll-cue{
+    display:inline-block; margin-top:34px; font-size:.78rem; color:var(--cream);
+    border:1px solid var(--mustard); padding:10px 18px; border-radius:30px;
+    transition:background .2s, color .2s;
+  }
+  .scroll-cue:hover{ background:var(--mustard); color:var(--maroon-deep); }
+  .hero-portrait{ position:relative; width:min(72vw,260px); margin:0 auto; }
+  .rosette-hero{ position:absolute; inset:-18px; width:calc(100% + 36px); height:calc(100% + 36px); color:var(--mustard); }
+  .hero-portrait img{
+    border-radius:50%; aspect-ratio:1/1; object-fit:cover; object-position:top center;
+    border:3px solid var(--mustard); position:relative;
+  }
+  @media (min-width:760px){
+    .hero-inner{ flex-direction:row; align-items:center; justify-content:space-between; }
+    .hero-portrait{ width:280px; flex-shrink:0; }
+  }
+
+  /* ================= STORY / TIMELINE ================= */
+  .story{ background:var(--bone); padding-top:84px; }
+  .timeline{ position:relative; max-width:680px; margin:0 auto; padding-left:28px; border-left:2px dotted var(--maroon); }
+  .t-node{ position:relative; margin-bottom:8px; opacity:0; transform:translateY(16px); transition:opacity .5s, transform .5s; }
+  .t-node.in-view{ opacity:1; transform:translateY(0); }
+  .t-node::before{
+    content:''; position:absolute; left:-34px; top:6px; width:12px; height:12px;
+    border-radius:50%; background:var(--mustard); border:2px solid var(--bone);
+    box-shadow:0 0 0 2px var(--maroon);
+  }
+  .t-btn{
+    width:100%; text-align:left; display:flex; justify-content:space-between; align-items:baseline; gap:12px;
+    padding:14px 0; border-bottom:1px solid var(--bone-soft);
+  }
+  .t-year{ font-weight:700; color:var(--maroon); font-size:1.05rem; white-space:nowrap; }
+  .t-label{ font-size:1.02rem; font-weight:600; flex:1; }
+  .t-icon{ font-size:1.1rem; color:var(--maroon); transition:transform .3s; flex-shrink:0; }
+  .t-node.open .t-icon{ transform:rotate(45deg); }
+  .t-detail{ max-height:0; overflow:hidden; transition:max-height .35s ease; }
+  .t-node.open .t-detail{ max-height:240px; }
+  .t-detail p{ padding:4px 0 18px; font-size:.95rem; line-height:1.6; color:#3a2c22; max-width:54ch; }
+
+  /* ================= GALLERY ================= */
+  .gallery{ background:var(--mustard); }
+  .gallery .eyebrow{ color:var(--maroon-deep); }
+  .gallery .section-title{ color:var(--ink); }
+  .card-grid{
+    display:grid; grid-template-columns:repeat(2,1fr); gap:16px; max-width:920px; margin:0 auto;
+  }
+  @media (min-width:680px){ .card-grid{ grid-template-columns:repeat(3,1fr); gap:22px; } }
+  .card{ perspective:1200px; aspect-ratio:3/4; }
+  .card-inner{
+    position:relative; width:100%; height:100%; transition:transform .6s cubic-bezier(.4,.2,.2,1);
+    transform-style:preserve-3d; border-radius:10px;
+  }
+  .card.flipped .card-inner{ transform:rotateY(180deg); }
+  .card-face{
+    position:absolute; inset:0; backface-visibility:hidden; border-radius:10px; overflow:hidden;
+    border:3px solid var(--ink);
+  }
+  .card-front{ background:var(--ink); }
+  .card-front img{ width:100%; height:100%; object-fit:cover; opacity:.92; }
+  .card-front .cap{
+    position:absolute; left:0; right:0; bottom:0; padding:8px 10px 9px;
+    background:linear-gradient(to top, rgba(0,0,0,.82), transparent);
+    color:var(--cream); font-size:.78rem; font-weight:600; line-height:1.25;
+  }
+  .card-front .tap-hint{ position:absolute; top:8px; right:8px; font-size:.62rem; color:var(--cream);
+    background:rgba(0,0,0,.5); padding:3px 7px; border-radius:20px; }
+  .card-back{
+    background:var(--bone); transform:rotateY(180deg); padding:14px 12px; display:flex; flex-direction:column;
+  }
+  .card-back h3{ font-family:'Baloo Da 2',sans-serif; font-size:.95rem; margin-bottom:8px; color:var(--maroon); }
+  .card-back ul{ list-style:none; font-size:.74rem; line-height:1.45; flex:1; overflow-y:auto; }
+  .card-back li{ margin-bottom:6px; padding-left:14px; position:relative; }
+  .card-back li::before{ content:'•'; position:absolute; left:0; color:var(--mustard-deep); font-weight:700; }
+  .card-back .back-hint{ font-size:.65rem; color:var(--maroon-deep); text-align:right; opacity:.7; }
+
+  /* ================= LEGACY ================= */
+  .legacy{ background:var(--indigo); color:var(--cream); text-align:center; padding:90px 24px; }
+  .legacy .section-eyebrow{ display:inline-block; }
+  .legacy-quote{
+    font-size:clamp(1.3rem,5vw,1.9rem); font-weight:700; line-height:1.35; max-width:26ch; margin:0 auto 48px;
+    font-style:italic;
+  }
+  .legacy-points{ display:grid; gap:28px; max-width:760px; margin:0 auto; text-align:left; }
+  @media (min-width:700px){ .legacy-points{ grid-template-columns:repeat(3,1fr); } }
+  .legacy-points h3{ font-size:.78rem; color:var(--mustard); margin-bottom:8px; }
+  .legacy-points p{ font-size:.92rem; line-height:1.55; color:#dde4f0; }
+  .corner-rosette{ position:absolute; width:90px; height:90px; color:var(--mustard); opacity:.6; }
+  .corner-tl{ top:18px; left:18px; }
+  .corner-br{ bottom:18px; right:18px; }
+  @media (max-width:600px){ .corner-rosette{ width:56px; height:56px; } }
+
+  /* ================= FACTS / FLASHCARDS ================= */
+  .facts{ background:var(--bone); text-align:center; }
+  .facts .section-title{ margin:0 auto 36px; }
+  .fact-card{
+    max-width:440px; margin:0 auto; background:var(--cream); border:2.5px solid var(--ink);
+    border-radius:14px; padding:30px 24px; position:relative;
+  }
+  .fact-counter{ font-size:.72rem; color:var(--maroon); margin-bottom:14px; }
+  .fact-text{ font-size:1.12rem; font-weight:600; line-height:1.5; min-height:84px; display:flex; align-items:center; justify-content:center; transition:opacity .2s; }
+  .fact-buttons{ display:flex; gap:10px; margin-top:22px; justify-content:center; }
+  .btn-solid, .btn-outline{
+    font-size:.82rem; font-weight:600; padding:11px 20px; border-radius:30px; transition:transform .15s, background .2s;
+  }
+  .btn-solid{ background:var(--maroon); color:var(--cream); }
+  .btn-solid:hover{ background:var(--maroon-deep); transform:translateY(-1px); }
+  .btn-outline{ border:1.5px solid var(--maroon); color:var(--maroon); }
+  .btn-outline:hover{ background:var(--maroon); color:var(--cream); }
+  .btn-solid:focus-visible, .btn-outline:focus-visible, .t-btn:focus-visible, .bengali-name:focus-visible{
+    outline:3px solid var(--teal); outline-offset:2px;
+  }
+
+  /* ================= FOOTER ================= */
+  .footer{
+    background:var(--ink); color:#c9bdaf; text-align:center; padding:48px 24px 40px;
+  }
+  .footer .rosette{ width:48px; height:48px; color:var(--mustard); margin:0 auto 16px; }
+  .footer p{ font-size:.78rem; line-height:1.6; }
+  .footer .credit{ margin-top:6px; color:#8a7c6c; }
+</style>
+</head>
+<body>
+
+<div class="progress-bar" id="progressBar"></div>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="dot-ring">
+      <circle cx="114.00" cy="60.00" r="3.4" style="animation-delay:0.000s"/>
+      <circle cx="112.16" cy="73.98" r="3.4" style="animation-delay:0.025s"/>
+      <circle cx="106.77" cy="87.00" r="3.4" style="animation-delay:0.050s"/>
+      <circle cx="98.18" cy="98.18" r="3.4" style="animation-delay:0.075s"/>
+      <circle cx="87.00" cy="106.77" r="3.4" style="animation-delay:0.100s"/>
+      <circle cx="73.98" cy="112.16" r="3.4" style="animation-delay:0.125s"/>
+      <circle cx="60.00" cy="114.00" r="3.4" style="animation-delay:0.150s"/>
+      <circle cx="46.02" cy="112.16" r="3.4" style="animation-delay:0.175s"/>
+      <circle cx="33.00" cy="106.77" r="3.4" style="animation-delay:0.200s"/>
+      <circle cx="21.82" cy="98.18" r="3.4" style="animation-delay:0.225s"/>
+      <circle cx="13.23" cy="87.00" r="3.4" style="animation-delay:0.250s"/>
+      <circle cx="7.84" cy="73.98" r="3.4" style="animation-delay:0.275s"/>
+      <circle cx="6.00" cy="60.00" r="3.4" style="animation-delay:0.300s"/>
+      <circle cx="7.84" cy="46.02" r="3.4" style="animation-delay:0.325s"/>
+      <circle cx="13.23" cy="33.00" r="3.4" style="animation-delay:0.350s"/>
+      <circle cx="21.82" cy="21.82" r="3.4" style="animation-delay:0.375s"/>
+      <circle cx="33.00" cy="13.23" r="3.4" style="animation-delay:0.400s"/>
+      <circle cx="46.02" cy="7.84" r="3.4" style="animation-delay:0.425s"/>
+      <circle cx="60.00" cy="6.00" r="3.4" style="animation-delay:0.450s"/>
+      <circle cx="73.98" cy="7.84" r="3.4" style="animation-delay:0.475s"/>
+      <circle cx="87.00" cy="13.23" r="3.4" style="animation-delay:0.500s"/>
+      <circle cx="98.18" cy="21.82" r="3.4" style="animation-delay:0.525s"/>
+      <circle cx="106.77" cy="33.00" r="3.4" style="animation-delay:0.550s"/>
+      <circle cx="112.16" cy="46.02" r="3.4" style="animation-delay:0.575s"/>
+    </g>
+  </defs>
+</svg>
+
+<header class="hero" id="hero">
+  <div class="hero-inner">
+    <div class="hero-text">
+      <p class="eyebrow mono">BENGALI MODERNIST · 1887–1972</p>
+      <h1 class="display hero-title">JAMINI ROY</h1>
+      <button class="bengali-name display" id="bengaliBtn" aria-expanded="false">জামিনী রায়</button>
+      <span class="tooltip" id="nameTooltip">pronounced roughly "JUH-mi-ni Roy" — tap again to hide</span>
+      <p class="hero-tagline">Trained to paint like the Royal Academy, he walked away from it — and found his real teachers among the Kalighat scroll-painters and potters of rural Bengal.</p>
+      <a href="#story" class="scroll-cue mono">↓ scroll the story</a>
+    </div>
+    <div class="hero-portrait">
+      <svg class="rosette rosette-hero" viewBox="0 0 120 120"><use href="#dot-ring"/></svg>
+      <img src="portrait.jpg" alt="Black and white photograph of artist Jamini Roy in his later years, wearing glasses" />
+    </div>
+  </div>
+</header>
+
+<section class="story" id="story">
+  <p class="eyebrow mono section-eyebrow">HIS STORY</p>
+  <h2 class="display section-title">From the academy to the village wall</h2>
+  <div class="timeline" id="timeline">
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1887</span>
+        <span class="t-label">Born in Beliatore</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>Jamini Roy was born on 11 April 1887 in Beliatore village, Bankura district, in what is now West Bengal. He grew up in a family with strong artistic leanings, which shaped his interests from early childhood.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1900s</span>
+        <span class="t-label">Trained in the Western academic style</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>He studied formally at the Government College of Art and Craft in Kolkata, where the curriculum centred on Western realism and portraiture — the dominant "correct" style of the colonial art world at the time.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1920s</span>
+        <span class="t-label">A turn toward folk art</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>Roy grew convinced that an art true to India had to grow from its own ground, not an imported one. He turned to Kalighat pat paintings and the rural craft traditions of Bengal, gradually replacing realism with bold outline and flat colour.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1930s–40s</span>
+        <span class="t-label">A signature style takes shape</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>His mature work settled into bold lines, bright flat colour and simplified forms — drawing on the Ramayana and Mahabharata, mother-and-child scenes, village life, and the Santhal community, among other subjects.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">Philosophy</span>
+        <span class="t-label">Art that anyone could own</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>He deliberately avoided costly materials, working instead with natural pigments and simple, indigenous techniques — keeping his paintings within reach of ordinary people rather than only collectors.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1955</span>
+        <span class="t-label">Padma Bhushan</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>The Government of India honoured him with the Padma Bhushan for his contribution to Indian art — recognition that arrived alongside growing international appreciation for his originality.</p></div>
+    </div>
+
+    <div class="t-node">
+      <button class="t-btn">
+        <span class="t-year mono">1972</span>
+        <span class="t-label">Passed away — and a legacy began</span>
+        <span class="t-icon">+</span>
+      </button>
+      <div class="t-detail"><p>Jamini Roy died on 24 April 1972. He is remembered today as the artist who brought Bengal's folk traditions into the mainstream of modern Indian art, opening a path that later generations of artists continued to follow.</p></div>
+    </div>
+
+  </div>
+</section>
+
+<section class="gallery" id="gallery">
+  <p class="eyebrow mono section-eyebrow">SIX PAINTINGS</p>
+  <h2 class="display section-title">Tap a painting to read its story</h2>
+  <div class="card-grid" id="cardGrid">
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="krishna_balarama.jpg" alt="Painting of Krishna and Balarama in bold colours" />
+          <span class="tap-hint mono">tap</span>
+          <div class="cap">Krishna &amp; Balarama</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Krishna &amp; Balarama</h3>
+          <ul>
+            <li>Shows Lord Krishna with his brother Balarama, facing each other beneath a tree.</li>
+            <li>Drawn from Hindu mythology, a recurring source for Roy's work.</li>
+            <li>A clear example of his bold outline and bright, flat colour.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="mother_child.jpg" alt="Painting of a mother holding her child" />
+          <span class="tap-hint mono">tap</span>
+          <div class="cap">Mother &amp; Child</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Mother &amp; Child</h3>
+          <ul>
+            <li>One of his most repeated and best-loved themes.</li>
+            <li>Built around tenderness, care and quiet simplicity.</li>
+            <li>Rooted in the everyday life of rural Bengal.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="santhal_dance.jpg" alt="Painting of Santhal tribal dancers in a row" />
+          <span class="tap-hint mono">tap</span>
+          <div class="cap">Santhal Dance</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Santhal Dance</h3>
+          <ul>
+            <li>Depicts the Santhal community in motion, mid-dance.</li>
+            <li>Celebrates tribal culture and communal life.</li>
+            <li>Built on rhythm — repeated poses that read like a beat.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="cat_prawn.jpg" alt="Painting of a white cat holding a prawn in its mouth" />
+          <span class="tap-hint mono">tap</span>
+          <div class="cap">Cat with Prawn</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Cat with Prawn</h3>
+          <ul>
+            <li>Playful, instantly recognisable, and one of his most iconic images.</li>
+            <li>Stripped down to a few confident shapes.</li>
+            <li>A favourite with collectors and casual viewers alike.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="three_women.jpg" alt="Painting of three women, one in front of the other two" />
+<span class="tap-hint mono">tap</span>
+          <div class="cap">Three Women</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Three Women</h3>
+          <ul>
+            <li>Graceful, almost mask-like female figures stacked in profile.</li>
+            <li>Drawn from Bengali folk visual style.</li>
+            <li>Notice the careful symmetry of eyes and posture.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-inner">
+        <div class="card-face card-front">
+          <img src="ramayana.jpg" alt="Painting of a scene from the Ramayana with Rama, Sita and Lakshmana" />
+          <span class="tap-hint mono">tap</span>
+          <div class="cap">Ramayana Series</div>
+        </div>
+        <div class="card-face card-back">
+          <h3>Ramayana Series</h3>
+          <ul>
+            <li>Part of a series built on the epic Ramayana.</li>
+            <li>This scene gathers Rama, Sita and Lakshmana together.</li>
+            <li>Storytelling and folk-art style combined in one frame.</li>
+          </ul>
+          <p class="back-hint mono">tap to flip back</p>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<section class="legacy" id="legacy">
+  <svg class="rosette corner-rosette corner-tl" viewBox="0 0 120 120"><use href="#dot-ring"/></svg>
+  <svg class="rosette corner-rosette corner-br" viewBox="0 0 120 120"><use href="#dot-ring"/></svg>
+  <p class="eyebrow mono section-eyebrow light">WHY IT MATTERS</p>
+  <blockquote class="display legacy-quote">"He blended Indian folk traditions with modern art — making his paintings simple, yet powerful."</blockquote>
+  <div class="legacy-points">
+    <div>
+      <h3 class="mono">NO COSTLY MATERIALS</h3>
+      <p>He worked with natural pigments and simple, indigenous techniques instead of imported, expensive ones.</p>
+    </div>
+    <div>
+      <h3 class="mono">ART FOR EVERYONE</h3>
+      <p>His low-cost methods kept original paintings within reach of ordinary buyers, not just collectors.</p>
+    </div>
+    <div>
+      <h3 class="mono">A LIVING LEGACY</h3>
+      <p>He's remembered as the artist who pulled Bengal's folk idiom into the mainstream of modern Indian art.</p>
+    </div>
+  </div>
+</section>
+
+<section class="facts" id="facts">
+  <p class="eyebrow mono section-eyebrow">QUICK REVISION</p>
+  <h2 class="display section-title">Flip through the facts before you present</h2>
+  <div class="fact-card">
+    <p class="fact-counter mono" id="factCounter">1 / 12</p>
+    <p class="fact-text" id="factText">Jamini Roy was a famous Indian artist known for his unique painting style.</p>
+    <div class="fact-buttons">
+      <button class="btn-outline" id="factPrev">← Back</button>
+      <button class="btn-solid" id="factNext">Next fact →</button>
+    </div>
+  </div>
+</section>
+
+<footer class="footer">
+  <svg class="rosette" viewBox="0 0 120 120"><use href="#dot-ring"/></svg>
+  <p>Made as a companion piece to a class IX–X art project on Jamini Roy.</p>
+  <p class="credit">Paintings shown are by Jamini Roy, reproduced here for educational, non-commercial use.</p>
+</footer>
+
+<script>
+  // ---- scroll progress bar ----
+  const progressBar = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const h = document.documentElement;
+    const pct = (h.scrollTop) / (h.scrollHeight - h.clientHeight) * 100;
+    progressBar.style.width = pct + '%';
+  });
+
+  // ---- bengali name tooltip ----
+  const bengaliBtn = document.getElementById('bengaliBtn');
+  const nameTooltip = document.getElementById('nameTooltip');
+  bengaliBtn.addEventListener('click', () => {
+    const shown = nameTooltip.classList.toggle('shown');
+    bengaliBtn.setAttribute('aria-expanded', shown);
+  });
+
+  // ---- timeline accordion ----
+  document.querySelectorAll('.t-node .t-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const node = btn.closest('.t-node');
+      node.classList.toggle('open');
+    });
+  });
+
+  // reveal timeline nodes on scroll
+  const nodes = document.querySelectorAll('.t-node');
+  const obs = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('in-view'); });
+  }, { threshold:.2 });
+  nodes.forEach(n => obs.observe(n));
+
+  // ---- flip cards ----
+  document.querySelectorAll('.card').forEach(card => {
+    card.addEventListener('click', () => card.classList.toggle('flipped'));
+  });
+
+  // ---- quick facts deck ----
+  const facts = [
+    "Jamini Roy was a famous Indian artist known for his unique painting style.",
+    "He was born in Beliatore, West Bengal, on 11 April 1887.",
+    "He studied at the Government College of Art and Craft, Kolkata.",
+    "He first trained in Western academic art before turning to Indian folk art.",
+    "His mature style was shaped by Kalighat paintings and rural Bengal traditions.",
+    "He's known for bold outlines and bright, flat colours.",
+    "Two of his most famous works are Mother and Child and Cat with Prawn.",
+    "His favourite subjects were mythology, village life and Santhal tribal culture.",
+    "He used natural colours and simple, inexpensive materials.",
+    "He wanted his art to be affordable for ordinary people, not just collectors.",
+    "He received the Padma Bhushan in 1955.",
+    "He's remembered for bringing Indian folk art into mainstream modern painting."
+  ];
+  let factIndex = 0;
+  const factText = document.getElementById('factText');
+  const factCounter = document.getElementById('factCounter');
+  function renderFact(){
+    factText.style.opacity = 0;
+    setTimeout(() => {
+      factText.textContent = facts[factIndex];
+      factCounter.textContent = (factIndex+1) + ' / ' + facts.length;
+      factText.style.opacity = 1;
+    }, 150);
+  }
+  document.getElementById('factNext').addEventListener('click', () => {
+    factIndex = (factIndex+1) % facts.length;
+    renderFact();
+  });
+  document.getElementById('factPrev').addEventListener('click', () => {
+    factIndex = (factIndex-1+facts.length) % facts.length;
+    renderFact();
+  });
+</script>
+
+</body>
+</html>
